@@ -1,5 +1,6 @@
 const axios = require('axios');
 
+// Получаем переменные окружения
 const BIN_ID = process.env.BIN_ID;
 const MASTER_KEY = process.env.MASTER_KEY;
 
@@ -27,7 +28,7 @@ exports.handler = async function(event) {
             body: JSON.stringify({ success: true })
         };
     } catch (error) {
-        console.log('Ошибка:', error.message);
+        console.error("Ошибка сохранения:", error.message);
         return {
             statusCode: 500,
             body: JSON.stringify({ success: false, error: 'Не удалось сохранить данные' })
