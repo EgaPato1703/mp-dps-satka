@@ -144,72 +144,97 @@
         <div id="messagesList"></div>
     </div>
 
-    <script>
-        const form = document.getElementById('reportForm');
-        const timeInput = document.getElementById('timeInput');
-        const messagesList = document.getElementById('messagesList');
-        const totalEl = document.getElementById('total');
+      <script>
+    const API_URL = 'https://heartfelt-lolly-0752ca.netlify.app/api/save ';
+    const BIN_ID = '6834b47b8a456b7966a5a85a'; // Замени на свой BIN ID из JSONBin
+    const ACCESS_KEY = '$2a$10$dffxExo1QsUKLdfb4J5Yo.XPhIjvUPlqQ635ttAJ4JzvpZGHwBW4a'; // X-Access-Key из JSONBin
 
-        // Текущее время
-        const now = new Date();
-        timeInput.value = now.toTimeString().slice(0,5);
+    const messagesList = document.getElementById('messagesList');
+    const totalEl = document.getElementById('total');
 
-        function cleanOldReports() {
-            let reports = JSON.parse(localStorage.getItem('reports') || '[]');
-            const hourAgo = Date.now() - 60 * 60 * 1000;
-            reports = reports.filter(r => r.timestamp > hourAgo);
-            localStorage.setItem('reports', JSON.stringify(reports));
-            renderMessages();
-            updateStats();
-        }
+    function cleanOldReports(reports) {
+        const hourAgo = Date.now() - 60 * 60 * 1000;
+        return reports.filter(r => r.timestamp > hourAgo);
+    }
 
-        function updateStats() {
-            let reports = JSON.parse(localStorage.getItem('reports') || '[]');
-            totalEl.textContent = reports.length;
-        }
+    async function fetchReports() {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/ ${BIN_ID}`, {
+            headers: {
+                'X-Access-Key': ACCESS_KEY
+            }
+        });
 
-        function renderMessages() {
-            let reports = JSON.parse(localStorage.getItem('reports') || '[]');
+        const data = await res.json();
+        return cleanOldReports(data.record || []);
+    }
+
+    async function saveReports(reports) {
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reports)
+        });
+    }
+
+    function renderMessages() {
+        fetchReports().then(reports => {
             messagesList.innerHTML = '';
-
             reports.forEach(report => {
                 const msg = document.createElement('div');
                 msg.className = 'message';
                 msg.innerHTML = `<strong>${report.time}</strong><br>${report.comment}`;
-                messagesList.insertBefore(msg, messagesList.firstChild);
+                messagesList.appendChild(msg);
             });
-        }
-
-        setInterval(cleanOldReports, 60000); // Очистка каждую минуту
-        window.onload = () => {
-            cleanOldReports();
-            renderMessages();
-        };
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(form);
-            const data = {
-                time: formData.get('time'),
-                comment: formData.get('comment'),
-                timestamp: Date.now()
-            };
-
-            let reports = JSON.parse(localStorage.getItem('reports') || '[]');
-            reports.push(data);
-            localStorage.setItem('reports', JSON.stringify(reports));
-
-            alert("Спасибо! Ваше сообщение отправлено.");
-            form.reset();
-            timeInput.value = new Date().toTimeString().slice(0,5);
-            renderMessages();
             updateStats();
         });
-      document.getElementById('refreshBtn').addEventListener('click', () => {
-    cleanOldReports();
-    renderMessages();
-});
-    </script>
+    }
+
+    function updateStats() {
+        fetchReports().then(reports => {
+            totalEl.textContent = reports.length;
+        });
+    }
+
+    const form = document.getElementById('reportForm');
+    const timeInput = document.getElementById('timeInput');
+
+    const now = new Date();
+    timeInput.value = now.toTimeString().slice(0,5);
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const data = {
+            time: formData.get('time'),
+            comment: formData.get('comment'),
+            timestamp: Date.now()
+        };
+
+        let reports = await fetchReports();
+        reports.push(data);
+        reports = reports.slice(-10); // показываем только последние 10 сообщений
+
+        await saveReports(reports);
+
+        form.reset();
+        timeInput.value = now.toTimeString().slice(0,5);
+        renderMessages();
+    });
+
+    // Автообновление каждые 10 секунд
+    setInterval(() => {
+        renderMessages();
+    }, 10000);
+
+    // Первичный рендеринг
+    window.onload = () => {
+        renderMessages();
+        updateStats();
+    };
+</script>
     <button id="refreshBtn" class="btn-refresh">🔄 Обновить</button>
 <a href="index.html" class="btn-back">Вернуться на главную</a>
 </body>
