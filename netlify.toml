@@ -1,4 +1,0 @@
-[build]
-functions = "functions"
-command = "echo 'Только для деплоя'"
-publish = "."
