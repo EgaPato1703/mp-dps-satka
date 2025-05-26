@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сообщить о патруле</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat :wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -13,53 +13,43 @@
             text-align: center;
             padding: 50px;
         }
-        h1 {
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
         form {
             max-width: 400px;
             margin: 20px auto;
-            padding: 20px;
             background: #fff;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        input, textarea {
+        input, textarea, button {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
+            margin-top: 10px;
+            font-size: 1em;
+            border-radius: 5px;
             border: 1px solid #ccc;
-            border-radius: 4px;
         }
         button {
             background-color: #007BFF;
             color: white;
-            padding: 10px 20px;
             border: none;
-            border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
             background-color: #0056b3;
         }
-        .messages {
-            margin-top: 20px;
-            padding: 20px;
+        .message {
+            text-align: left;
+            margin-bottom: 10px;
+            padding: 10px;
             background: #f9f9f9;
             border-left: 4px solid #007BFF;
         }
-        .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #fff;
-            border-radius: 4px;
-        }
         .stats {
-            margin-top: 20px;
+            background: rgba(255,255,255,0.9);
             padding: 20px;
-            background: #fff;
-            border-radius: 4px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 20px auto;
         }
     </style>
 </head>
@@ -68,7 +58,7 @@
 
     <form id="reportForm">
         <input type="time" name="time" id="timeInput" required>
-        <textarea name="comment" rows="3" placeholder="Где видели? Например: М5, Сатка, Межевой..." required></textarea>
+        <textarea name="comment" rows="3" placeholder="Где видели? Например: М5 перед Аширом..." required></textarea>
         <button type="submit">Отправить анонимно</button>
     </form>
 
@@ -78,47 +68,31 @@
     </div>
 
     <div class="messages">
-        <p>Последние сообщения</p>
+        <h3>Последние сообщения</h3>
         <p>Новые сообщения появляются вверху</p>
         <div id="messagesList"></div>
     </div>
 
     <script>
-    // URL серверной функции на Netlify
-    const API_URL = 'https://heartfelt-lolly-0752ca.netlify.app/api/save ';
+        const API_URL = 'https://heartfelt-lolly-0752ca.netlify.app/api/save ';
+        const BIN_ID = '6834b47b8a456b7966a5a85a'; // Замени на свой BIN ID из JSONBin
+        const ACCESS_KEY = '$2a$10$dffxExo1QsUKLdfb4J5Yo.XPhIjvUPlqQ635ttAJ4JzvpZGHwBW4a'; // Замени на X-Access-Key из JSONBin
 
-    // Твой BIN ID из JSONBin
-    const BIN_ID = '6834b47b8a456b7966a5a85a'; // Замени на свой!
+        const form = document.getElementById('reportForm');
+        const messagesList = document.getElementById('messagesList');
+        const totalEl = document.getElementById('total');
 
-    // Твой X-Access-Key из JSONBin
-    const ACCESS_KEY = '$2a$10$XGo5E.79nmUS.aaD4e38y.DI35hYBS6PtULcaD8fz1p7S25vk8eu6'; // Замени на свой!
-
-    const form = document.getElementById('reportForm');
-    const messagesList = document.getElementById('messagesList');
-    const totalEl = document.getElementById('total');
-
-    function cleanOldReports(reports) {
-        const hourAgo = Date.now() - 60 * 60 * 1000;
-        return reports.filter(r => r.timestamp > hourAgo);
-    }
-
-    async function fetchReportsFromServer() {
-        try {
+        async function fetchReports() {
             const res = await fetch(`https://api.jsonbin.io/v3/b/ ${BIN_ID}`, {
                 headers: {
                     'X-Access-Key': ACCESS_KEY
                 }
             });
             const data = await res.json();
-            return cleanOldReports(data.record || []);
-        } catch (err) {
-            console.error("Ошибка загрузки данных:", err);
-            return [];
+            return data.record || [];
         }
-    }
 
-    async function saveReportsToServer(reports) {
-        try {
+        async function saveReports(reports) {
             await fetch(API_URL, {
                 method: 'POST',
                 headers: {
@@ -126,61 +100,61 @@
                 },
                 body: JSON.stringify(reports)
             });
-        } catch (err) {
-            console.error("Ошибка сохранения:", err);
         }
-    }
 
-    function renderMessages(reports) {
-        messagesList.innerHTML = '';
-        reports.forEach(report => {
-            const msg = document.createElement('div');
-            msg.className = 'message';
-            msg.innerHTML = `<strong>${report.time}</strong><br>${report.comment}`;
-            messagesList.appendChild(msg);
-        });
-        updateStats(reports);
-    }
+        function renderMessages(reports) {
+            messagesList.innerHTML = '';
+            reports.forEach(report => {
+                const msg = document.createElement('div');
+                msg.className = 'message';
+                msg.innerHTML = `<strong>${report.time}</strong><br>${report.comment}`;
+                messagesList.appendChild(msg);
+            });
+            updateStats(reports);
+        }
 
-    function updateStats(reports) {
-        totalEl.textContent = reports.length;
-    }
+        function updateStats(reports) {
+            totalEl.textContent = reports.length;
+        }
 
-    async function loadAndRender() {
-        const reports = await fetchReportsFromServer();
-        localStorage.setItem('reports', JSON.stringify(reports));
-        renderMessages(reports);
-    }
+        function cleanOldReports(reports) {
+            const hourAgo = Date.now() - 60 * 60 * 1000;
+            return reports.filter(r => r.timestamp > hourAgo);
+        }
 
-    if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        async function loadAndRender() {
+            let reports = await fetchReports();
+            reports = cleanOldReports(reports);
+            renderMessages(reports);
+        }
 
-            const formData = new FormData(form);
-            const data = {
-                time: formData.get('time'),
-                comment: formData.get('comment'),
-                timestamp: Date.now()
-            };
+        if (form) {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
 
-            let reports = JSON.parse(localStorage.getItem('reports') || '[]');
-            reports.push(data);
-            reports = reports.slice(-10); // последние 10 сообщений
+                const formData = new FormData(form);
+                const data = {
+                    time: formData.get('time'),
+                    comment: formData.get('comment'),
+                    timestamp: Date.now()
+                };
 
-            // Сохраняем данные через Netlify Function
-            await saveReportsToServer(reports);
+                let reports = await fetchReports();
+                reports.push(data);
+                reports = cleanOldReports(reports);
 
-            // Обновляем отображение
-            form.reset();
+                await saveReports(reports);
+
+                form.reset();
+                renderMessages(reports);
+                document.getElementById('timeInput').value = new Date().toTimeString().slice(0,5);
+            });
+        }
+
+        window.onload = () => {
+            document.getElementById('timeInput').value = new Date().toTimeString().slice(0,5);
             loadAndRender();
-        });
-    } else {
-        console.error("Форма не найдена");
-    }
-
-    window.onload = async () => {
-        await loadAndRender();
-    };
-</script>
+        };
+    </script>
 </body>
 </html>
