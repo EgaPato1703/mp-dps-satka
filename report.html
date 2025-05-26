@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сообщить о патруле</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat :wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -11,175 +11,101 @@
             background: linear-gradient(to right, red, white, blue);
             color: #333;
             text-align: center;
-            padding: 30px;
+            padding: 50px;
         }
-        h2 {
+        h1 {
             font-size: 2em;
             margin-bottom: 20px;
         }
         form {
-            background: #fff;
+            max-width: 400px;
+            margin: 20px auto;
             padding: 20px;
-            border-radius: 10px;
-            max-width: 500px;
-            margin: 0 auto 40px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        input, textarea, button {
+        input, textarea {
             width: 100%;
             padding: 10px;
-            margin-top: 10px;
-            font-size: 1em;
-            border-radius: 5px;
+            margin: 10px 0;
             border: 1px solid #ccc;
+            border-radius: 4px;
         }
         button {
             background-color: #007BFF;
             color: white;
+            padding: 10px 20px;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
             background-color: #0056b3;
         }
-        .stats, .messages {
-            background: rgba(255,255,255,0.9);
+        .messages {
+            margin-top: 20px;
             padding: 20px;
-            border-radius: 10px;
-            max-width: 500px;
-            margin: 0 auto 20px;
-        }
-        .message {
-            text-align: left;
-            margin-bottom: 10px;
-            padding: 10px;
             background: #f9f9f9;
             border-left: 4px solid #007BFF;
         }
-      .btn-back {
-    display: inline-block;
-    padding: 12px 25px;
-    background-color: #fff;
-    color: #000;
-    border: none;
-    font-weight: bold;
-    font-size: 1em;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-    text-decoration: none;
-    margin-top: 20px;
-}
-.btn-back:hover {
-    background-color: #f0f0f0;
-}
-      /* Адаптация под мобильные устройства */
-@media (max-width: 600px) {
-    h1, h2 {
-        font-size: 1.5em;
-    }
-    p {
-        font-size: 1em;
-    }
-    .btn, .btn-back {
-        padding: 12px 20px;
-        font-size: 0.9em;
-    }
-    input[type="time"], textarea {
-        font-size: 1em;
-    }
-}
- .btn-refresh {
-    display: inline-block;
-    padding: 8px 14px;
-    background-color: #fff;
-    color: #000;
-    border: 1px solid #ccc;
-    font-weight: bold;
-    font-size: 0.9em;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.btn-refresh:hover {
-    background-color: #f0f0f0;
-}
-      .message {
-    text-align: left;
-    margin-bottom: 10px;
-    padding: 10px;
-    background: #f9f9f9;
-    border-left: 4px solid #007BFF;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeIn 0.4s ease forwards;
-}
-
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 4px;
+        }
+        .stats {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 4px;
+        }
     </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <h2>Сообщить о патруле</h2>
+    <h1>Сообщить о патруле</h1>
+
     <form id="reportForm">
         <input type="time" name="time" id="timeInput" required>
-        <textarea name="comment" rows="3" placeholder="Где видели/не видели? Например: М5, Межевой, Сатка..." required></textarea>
+        <textarea name="comment" rows="3" placeholder="Где видели? Например: М5, Сатка, Межевой..." required></textarea>
         <button type="submit">Отправить анонимно</button>
     </form>
 
-    <div class="stats" id="stats">
-        <h3>Статистика за 24 часа</h3>
+    <div class="stats">
+        <p>Статистика за 24 часа</p>
         <p>Всего записей: <span id="total">0</span></p>
     </div>
 
     <div class="messages">
-        <h3>Последние сообщения</h3>
-      <p style="font-size: 0.9em; color: #555; margin-top: -15px;">Новые сообщения появляются вверху</p>
+        <p>Последние сообщения</p>
+        <p>Новые сообщения появляются вверху</p>
         <div id="messagesList"></div>
     </div>
 
-      <script>
-    const API_URL = 'https://heartfelt-lolly-0752ca.netlify.app/api/save ';
-    const BIN_ID = '6834b47b8a456b7966a5a85a'; // Замени на свой BIN ID из JSONBin
-    const ACCESS_KEY = '$2a$10$dffxExo1QsUKLdfb4J5Yo.XPhIjvUPlqQ635ttAJ4JzvpZGHwBW4a'; // X-Access-Key из JSONBin
+    <script>
+        console.log("Скрипт запущен");
 
-    const messagesList = document.getElementById('messagesList');
-    const totalEl = document.getElementById('total');
+        const form = document.getElementById('reportForm');
+        const messagesList = document.getElementById('messagesList');
+        const totalEl = document.getElementById('total');
 
-    function cleanOldReports(reports) {
-        const hourAgo = Date.now() - 60 * 60 * 1000;
-        return reports.filter(r => r.timestamp > hourAgo);
-    }
+        function cleanOldReports(reports) {
+            const hourAgo = Date.now() - 60 * 60 * 1000;
+            return reports.filter(r => r.timestamp > hourAgo);
+        }
 
-    async function fetchReports() {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/ ${BIN_ID}`, {
-            headers: {
-                'X-Access-Key': ACCESS_KEY
-            }
-        });
+        function fetchReports() {
+            return JSON.parse(localStorage.getItem('reports') || '[]');
+        }
 
-        const data = await res.json();
-        return cleanOldReports(data.record || []);
-    }
+        function saveReports(reports) {
+            localStorage.setItem('reports', JSON.stringify(reports));
+        }
 
-    async function saveReports(reports) {
-        await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(reports)
-        });
-    }
-
-    function renderMessages() {
-        fetchReports().then(reports => {
+        function renderMessages() {
+            let reports = fetchReports();
+            reports = cleanOldReports(reports);
             messagesList.innerHTML = '';
             reports.forEach(report => {
                 const msg = document.createElement('div');
@@ -188,54 +114,42 @@
                 messagesList.appendChild(msg);
             });
             updateStats();
-        });
-    }
+        }
 
-    function updateStats() {
-        fetchReports().then(reports => {
+        function updateStats() {
+            let reports = fetchReports();
             totalEl.textContent = reports.length;
-        });
-    }
+        }
 
-    const form = document.getElementById('reportForm');
-    const timeInput = document.getElementById('timeInput');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log("Форма отправляется");
 
-    const now = new Date();
-    timeInput.value = now.toTimeString().slice(0,5);
+                const formData = new FormData(form);
+                const data = {
+                    time: formData.get('time'),
+                    comment: formData.get('comment'),
+                    timestamp: Date.now()
+                };
 
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+                let reports = fetchReports();
+                reports.push(data);
+                reports = reports.slice(-10); // последние 10 сообщений
 
-        const formData = new FormData(form);
-        const data = {
-            time: formData.get('time'),
-            comment: formData.get('comment'),
-            timestamp: Date.now()
+                saveReports(reports);
+
+                form.reset();
+                renderMessages();
+            });
+        } else {
+            console.error("Форма не найдена");
+        }
+
+        window.onload = () => {
+            renderMessages();
+            updateStats();
         };
-
-        let reports = await fetchReports();
-        reports.push(data);
-        reports = reports.slice(-10); // показываем только последние 10 сообщений
-
-        await saveReports(reports);
-
-        form.reset();
-        timeInput.value = now.toTimeString().slice(0,5);
-        renderMessages();
-    });
-
-    // Автообновление каждые 10 секунд
-    setInterval(() => {
-        renderMessages();
-    }, 10000);
-
-    // Первичный рендеринг
-    window.onload = () => {
-        renderMessages();
-        updateStats();
-    };
-</script>
-    <button id="refreshBtn" class="btn-refresh">🔄 Обновить</button>
-<a href="index.html" class="btn-back">Вернуться на главную</a>
+    </script>
 </body>
 </html>
