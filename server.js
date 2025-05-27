@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.RAILWAY_STATIC_PORT || 8080;
 
 // Путь к файлу для хранения сообщений
 const DATA_FILE = path.join(__dirname, 'messages.json');
