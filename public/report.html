@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Сообщить о патруле</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat :wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(to right, red, white, blue);
+            color: #333;
+            text-align: center;
+            padding: 30px;
+        }
+        h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: 0 auto 40px;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .stats, .messages {
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: 0 auto 20px;
+        }
+        .message {
+            text-align: left;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #007BFF;
+        }
+      .btn-back {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #fff;
+    color: #000;
+    border: none;
+    font-weight: bold;
+    font-size: 1em;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-decoration: none;
+    margin-top: 20px;
+}
+.btn-back:hover {
+    background-color: #f0f0f0;
+}
+      /* Адаптация под мобильные устройства */
+@media (max-width: 600px) {
+    h1, h2 {
+        font-size: 1.5em;
+    }
+    p {
+        font-size: 1em;
+    }
+    .btn, .btn-back {
+        padding: 12px 20px;
+        font-size: 0.9em;
+    }
+    input[type="time"], textarea {
+        font-size: 1em;
+    }
+}
+ .btn-refresh {
+    display: inline-block;
+    padding: 8px 14px;
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    font-weight: bold;
+    font-size: 0.9em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn-refresh:hover {
+    background-color: #f0f0f0;
+}
+      .message {
+    text-align: left;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-left: 4px solid #007BFF;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+    </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h2>Сообщить о патруле</h2>
+    <form id="reportForm">
+        <input type="time" name="time" id="timeInput" required>
+        <textarea name="comment" rows="3" placeholder="Где видели/не видели? Например: М5, Межевой, Сатка..." required></textarea>
+        <button type="submit">Отправить анонимно</button>
+    </form>
+
+    <div class="stats" id="stats">
+        <h3>Статистика за 24 часа</h3>
+        <p>Всего записей: <span id="total">0</span></p>
+    </div>
+
+    <div class="messages">
+        <h3>Последние сообщения</h3>
+      <p style="font-size: 0.9em; color: #555; margin-top: -15px;">Новые сообщения появляются вверху</p>
+        <div id="messagesList"></div>
+    </div>
+
+    <script>
+    const form = document.getElementById('reportForm');
+    const timeInput = document.getElementById('timeInput');
+    const messagesList = document.getElementById('messagesList');
+    const totalEl = document.getElementById('total');
+
+  const API_URL = 'http://localhost:3000/api/messages'; // Или полный URL, если сервер на другом домене
+
+    function formatTime(date) {
+        return date.toTimeString().slice(0,5);
+    }
+
+    async function fetchMessages() {
+        try {
+            const res = await fetch(API_URL);
+            const messages = await res.json();
+            messagesList.innerHTML = '';
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = 'message';
+                div.innerHTML = `<strong>${msg.time}</strong><br>${msg.comment}`;
+                messagesList.appendChild(div);
+            });
+            totalEl.textContent = messages.length;
+        } catch (e) {
+            console.error("Ошибка загрузки сообщений:", e);
+        }
+    }
+
+    async function sendMessage(data) {
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        alert("Спасибо! Ваше сообщение отправлено.");
+        form.reset();
+        timeInput.value = formatTime(new Date());
+        fetchMessages(); // Обновляем список
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const now = new Date();
+        const data = {
+            time: formData.get('time'),
+            comment: formData.get('comment'),
+            timestamp: now.getTime()
+        };
+        sendMessage(data);
+    });
+
+    // Обновление списка каждые 30 секунд
+    setInterval(fetchMessages, 30000);
+
+    window.onload = fetchMessages;
+</script>
+    <button id="refreshBtn" class="btn-refresh">🔄 Обновить</button>
+<a href="index.html" class="btn-back">Вернуться на главную</a>
+</body>
+</html>
