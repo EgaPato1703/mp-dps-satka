@@ -150,7 +150,7 @@
     const messagesList = document.getElementById('messagesList');
     const totalEl = document.getElementById('total');
 
-  const API_URL = 'http://localhost:3000/api/messages'; // Или полный URL, если сервер на другом домене
+  const API_URL = '/api/messages'; // Оставляем так, потому что сайт и API на одном домене
 
     function formatTime(date) {
         return date.toTimeString().slice(0,5);
